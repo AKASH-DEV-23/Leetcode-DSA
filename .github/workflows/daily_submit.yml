@@ -1,0 +1,38 @@
+name: Daily LeetCode Submission
+
+on:
+  schedule:
+    # Runs every day at 10:00 AM UTC
+    - cron: '0 10 * * *'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install requests
+      run: pip install requests
+    
+    - name: Run LeetCode Submitter
+      env:
+        LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
+        CSRF_TOKEN: ${{ secrets.CSRF_TOKEN }}
+      run: python leetcode_submit.py
+    
+    - name: Log submission
+      run: |
+        echo "$(date): Submission attempted" >> submission_log.txt
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+        git add submission_log.txt
+        git commit -m "Daily submission $(date +'%Y-%m-%d')" || true
+        git push || true
